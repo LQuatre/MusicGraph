@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.19-community
+    container_name: musicgraph_db
+    ports:
+      - "7474:7474" # Neo4j Browser UI
+      - "7687:7687" # Bolt Protocol
+    environment:
+      - NEO4J_AUTH=neo4j/musicgraphpassword
+    volumes:
+      - neo4j_data:/data
+      - neo4j_import:/import
+      - neo4j_logs:/logs
+    networks:
+      - musicgraph_network
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p musicgraphpassword 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: musicgraph_backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=musicgraphpassword
+      - NODE_ENV=production
+      - NODE_OPTIONS=--dns-result-order=ipv4first
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    networks:
+      - musicgraph_network
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: musicgraph_frontend
+    ports:
+      - "80:80" # Port 80 for production deployment
+    depends_on:
+      - backend
+    networks:
+      - musicgraph_network
+
+volumes:
+  neo4j_data:
+  neo4j_import:
+  neo4j_logs:
+
+networks:
+  musicgraph_network:
+    driver: bridge

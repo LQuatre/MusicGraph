@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+/backend/node_modules/
+/frontend/node_modules/
+
+# Production builds
+dist/
+/backend/dist/
+/frontend/dist/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+/backend/.env
+/frontend/.env
+
+# Neo4j Database Data
+/data/
+
+# IDE / System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
