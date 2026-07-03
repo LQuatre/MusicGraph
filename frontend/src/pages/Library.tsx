@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Disc, Music, Search, Calendar, MapPin, Tag, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, ArrowRight } from '../components/AnimatedIcon';
 
 interface LibraryProps {
   apiUrl: string;
@@ -69,7 +70,6 @@ const Library: React.FC<LibraryProps> = ({ apiUrl, onInspectRelease, onInspectRe
     loadData();
   }, []);
 
-  // Format track length from ms to min:sec
   const formatLength = (ms?: number): string => {
     if (!ms) return 'N/A';
     const totalSecs = Math.floor(ms / 1000);
@@ -95,18 +95,55 @@ const Library: React.FC<LibraryProps> = ({ apiUrl, onInspectRelease, onInspectRe
         Explorez tous les albums (releases) et morceaux (recordings) actuellement stockés dans la base de données Neo4j.
       </p>
 
-      {/* Main Tabs Selection */}
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '2rem' }}>
+      {/* Sliding Pill Tab Switcher */}
+      <div style={{
+        display: 'inline-flex',
+        padding: '4px',
+        background: 'rgba(255, 255, 255, 0.03)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '9999px',
+        marginBottom: '2.5rem'
+      }}>
         <button
           className={`nav-link ${activeTab === 'releases' ? 'active' : ''}`}
           onClick={() => {
             setActiveTab('releases');
             setSearchQuery('');
           }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', padding: '0.5rem 1rem' }}
+          style={{
+            position: 'relative',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.9rem',
+            padding: '0.6rem 1.25rem',
+            color: activeTab === 'releases' ? '#fff' : 'var(--text-secondary)',
+            fontWeight: '600',
+            transition: 'color 150ms var(--ease-out)',
+            borderRadius: '9999px'
+          }}
         >
-          <Disc size={20} />
           Albums / Releases ({releases.length})
+          {activeTab === 'releases' && (
+            <motion.span
+              layoutId="active-library-tab"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(99, 102, 241, 0.12)',
+                border: '1px solid rgba(99, 102, 241, 0.25)',
+                borderRadius: '9999px',
+                zIndex: -1
+              }}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
         </button>
         <button
           className={`nav-link ${activeTab === 'recordings' ? 'active' : ''}`}
@@ -114,15 +151,45 @@ const Library: React.FC<LibraryProps> = ({ apiUrl, onInspectRelease, onInspectRe
             setActiveTab('recordings');
             setSearchQuery('');
           }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.05rem', padding: '0.5rem 1rem' }}
+          style={{
+            position: 'relative',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.9rem',
+            padding: '0.6rem 1.25rem',
+            color: activeTab === 'recordings' ? '#fff' : 'var(--text-secondary)',
+            fontWeight: '600',
+            transition: 'color 150ms var(--ease-out)',
+            borderRadius: '9999px'
+          }}
         >
-          <Music size={20} />
           Morceaux / Recordings ({recordings.length})
+          {activeTab === 'recordings' && (
+            <motion.span
+              layoutId="active-library-tab"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(99, 102, 241, 0.12)',
+                border: '1px solid rgba(99, 102, 241, 0.25)',
+                borderRadius: '9999px',
+                zIndex: -1
+              }}
+              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            />
+          )}
         </button>
       </div>
 
       {/* Search Field */}
-      <div className="input-group" style={{ marginBottom: '1.5rem', maxWidth: '500px' }}>
+      <div className="input-group" style={{ marginBottom: '2.5rem', maxWidth: '500px' }}>
         <span style={{ display: 'flex', alignItems: 'center', paddingLeft: '1rem', color: 'var(--text-muted)' }}>
           <Search size={18} />
         </span>
@@ -147,46 +214,56 @@ const Library: React.FC<LibraryProps> = ({ apiUrl, onInspectRelease, onInspectRe
             Aucun album trouvé. Importez-en depuis l'onglet "Rechercher / Importer" !
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {filteredReleases.map((release) => {
-              const { mbid, title, date, country, releaseType } = release.properties;
-              return (
-                <div key={mbid} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#fff', lineHeight: '1.3' }}>{title}</h3>
-                      <span className="badge" style={{ flexShrink: 0 }}>{releaseType || 'Album'}</span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={14} />
-                        <span>Date : {date ? date.split('-')[0] : 'N/A'}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <MapPin size={14} />
-                        <span>Région : {country || 'Inconnu'}</span>
-                      </div>
-                      {release.labels && release.labels.length > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <Tag size={14} />
-                          <span>Label : {release.labels.join(', ')}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => onInspectRelease(mbid)}
-                    style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem 0', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            <AnimatePresence>
+              {filteredReleases.map((release, idx) => {
+                const { mbid, title, date, country, releaseType } = release.properties;
+                return (
+                  <motion.div
+                    key={mbid}
+                    className="card"
+                    style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.3, delay: Math.min(idx * 0.04, 0.25), ease: [0.23, 1, 0.32, 1] }}
                   >
-                    Inspecter Album
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              );
-            })}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#fff', lineHeight: '1.3' }}>{title}</h3>
+                        <span className="badge" style={{ flexShrink: 0 }}>{releaseType || 'Album'}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Date</span>
+                          <span style={{ color: '#fff', fontWeight: '500', fontFamily: 'var(--font-mono)' }}>{date ? date.split('-')[0] : 'N/A'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Région</span>
+                          <span style={{ color: '#fff', fontWeight: '500' }}>{country || 'Inconnu'}</span>
+                        </div>
+                        {release.labels && release.labels.length > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Label</span>
+                            <span style={{ color: '#fff', fontWeight: '500', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '160px' }}>{release.labels.join(', ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => onInspectRelease(mbid)}
+                      style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem 0', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      Inspecter Album
+                      <ArrowRight size={14} />
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )
       ) : (
@@ -197,30 +274,40 @@ const Library: React.FC<LibraryProps> = ({ apiUrl, onInspectRelease, onInspectRe
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {filteredRecordings.map((recording) => {
-              const { mbid, title, length, firstReleaseDate } = recording.properties;
-              return (
-                <div key={mbid} className="list-item" style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', padding: '1rem 1.5rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', marginBottom: '0.25rem' }}>{title}</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                      Artistes : <span style={{ color: 'var(--accent-color)', fontWeight: '600' }}>{recording.artists.join(', ')}</span>
-                    </p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Durée : {formatLength(length)} {firstReleaseDate ? ` | Date : ${firstReleaseDate.split('-')[0]}` : ''}
-                    </p>
-                  </div>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => onInspectRecording(mbid)}
-                    style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            <AnimatePresence>
+              {filteredRecordings.map((recording, idx) => {
+                const { mbid, title, length, firstReleaseDate } = recording.properties;
+                return (
+                  <motion.div
+                    key={mbid}
+                    className="list-item"
+                    style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', padding: '1rem 1.5rem' }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.2), ease: [0.23, 1, 0.32, 1] }}
                   >
-                    Détails
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              );
-            })}
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', marginBottom: '0.25rem' }}>{title}</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                        Artistes : <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>{recording.artists.join(', ')}</span>
+                      </p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        Durée : {formatLength(length)} {firstReleaseDate ? ` | Date : ${firstReleaseDate.split('-')[0]}` : ''}
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => onInspectRecording(mbid)}
+                      style={{ fontSize: '0.8rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      Détails
+                      <ArrowRight size={14} />
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )
       )}

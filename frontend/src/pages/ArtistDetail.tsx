@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GraphView from '../components/GraphView';
-import { ArrowLeft, Users, Calendar, MapPin, Tag, Disc, Music, ShieldAlert, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, RefreshCw } from '../components/AnimatedIcon';
 import type { ArtistInfo } from '../components/ArtistCard';
 
 interface ArtistDetailProps {
@@ -88,25 +89,21 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch details
       const detailRes = await fetch(`${apiUrl}/artists/${mbid}`);
       if (!detailRes.ok) throw new Error("Artiste non trouvé dans la base Neo4j");
       const detailData = await detailRes.json();
       setArtist(detailData);
 
-      // 2. Fetch tracks
       const recRes = await fetch(`${apiUrl}/artists/${mbid}/recordings`);
       if (!recRes.ok) throw new Error("Erreur lors de la récupération des morceaux");
       const recData = await recRes.json();
       setRecordings(Array.isArray(recData) ? recData : []);
 
-      // 3. Fetch releases
       const relRes = await fetch(`${apiUrl}/artists/${mbid}/releases`);
       if (!relRes.ok) throw new Error("Erreur lors de la récupération des albums");
       const relData = await relRes.json();
       setReleases(Array.isArray(relData) ? relData : []);
 
-      // 4. Fetch collaborations
       const collabRes = await fetch(`${apiUrl}/artists/${mbid}/collaborations`);
       if (!collabRes.ok) throw new Error("Erreur lors de la récupération des collaborations");
       const collabData = await collabRes.json();
@@ -139,7 +136,6 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
     fetchSubgraph();
   }, [mbid]);
 
-  // Format track length from ms to min:sec
   const formatLength = (ms?: number): string => {
     if (!ms) return 'N/A';
     const totalSecs = Math.floor(ms / 1000);
@@ -178,52 +174,51 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
   return (
     <div className="fade-in">
       {/* Top action header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
         <button className="btn btn-secondary" onClick={onBack} style={{ padding: '0.5rem 1rem' }}>
           <ArrowLeft size={16} />
           Retour
         </button>
         <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }} />
-        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
           Exploration de graphe &gt; {name}
         </span>
       </div>
 
       {/* Main artist detail section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '35% 65%', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '2.5rem', alignItems: 'start' }}>
         
         {/* Left Column: Metadata, Genres, Collaborators list */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="card">
-            <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#fff', marginBottom: '0.25rem' }}>{name}</h2>
+          <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#fff', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>{name}</h2>
             {disambiguation && (
-              <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
                 "{disambiguation}"
               </p>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.95rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Users size={18} color="#6366f1" />
-                <span>Type : {type || 'Inconnu'}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Type</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{type || 'Inconnu'}</span>
               </div>
               {areaName && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <MapPin size={18} color="#f59e0b" />
-                  <span>Origine : {areaName}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Origine</span>
+                  <span style={{ color: '#fff', fontWeight: '500' }}>{areaName}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Calendar size={18} color="#10b981" />
-                <span>
-                  Activité : {beginDate ? beginDate : '?'}
-                  {endDate ? ` à ${endDate}` : ' à aujourd\'hui'}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Activité</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>
+                  {beginDate ? beginDate : '?'}
+                  {endDate ? ` – ${endDate}` : ' – présent'}
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                <span>Source : {source}</span>
-                <span>|</span>
-                <span>MBID : {mbid}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                <div>Source : {source}</div>
+                <div style={{ fontFamily: 'monospace' }}>MBID : {mbid}</div>
               </div>
             </div>
 
@@ -231,7 +226,7 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
               className="btn btn-secondary"
               onClick={handleSync}
               disabled={syncing}
-              style={{ width: '100%', marginTop: '1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.6rem 0' }}
+              style={{ width: '100%', marginTop: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', padding: '0.6rem 0' }}
             >
               {syncing ? (
                 <>
@@ -247,12 +242,12 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
             </button>
             
             {syncError && (
-              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.8rem' }}>
+              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#f87171', fontSize: '0.8rem' }}>
                 {syncError}
               </div>
             )}
             {syncSuccess && (
-              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', fontSize: '0.8rem' }}>
+              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#34d399', fontSize: '0.8rem' }}>
                 Artiste mis à jour avec succès !
               </div>
             )}
@@ -260,14 +255,13 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
 
           {/* Genres Section */}
           {genres.length > 0 && (
-            <div className="card">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Tag size={16} color="#ec4899" />
+            <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: '700', marginBottom: '1rem', color: '#fff' }}>
                 Genres Associés
               </h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {genres.map((genre) => (
-                  <span key={genre} className="badge badge-secondary">
+                  <span key={genre} className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>
                     {genre}
                   </span>
                 ))}
@@ -276,9 +270,8 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
           )}
 
           {/* Collaborations Section */}
-          <div className="card">
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Users size={16} color="#6366f1" />
+          <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: '700', marginBottom: '1rem', color: '#fff' }}>
               Collaborateurs directs ({collaborations.length})
             </h3>
             {collaborations.length === 0 ? (
@@ -296,35 +289,41 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
                   paddingRight: '0.25rem'
                 }}
               >
-                {collaborations.map((collab) => (
-                  <div
-                    key={collab.properties.mbid}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.6rem 0.8rem',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '6px',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    <a
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onInspectArtist(collab.properties.mbid);
+                <AnimatePresence>
+                  {collaborations.map((collab, idx) => (
+                    <motion.div
+                      key={collab.properties.mbid}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.6rem 0.8rem',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem'
                       }}
-                      style={{ color: '#fff', textDecoration: 'none', fontWeight: '600' }}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.25), ease: [0.23, 1, 0.32, 1] }}
                     >
-                      {collab.properties.name}
-                    </a>
-                    <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>
-                      {collab.songCount} collab{collab.songCount > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                ))}
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onInspectArtist(collab.properties.mbid);
+                        }}
+                        style={{ color: '#fff', textDecoration: 'none', fontWeight: '600' }}
+                        className="hover-link"
+                      >
+                        {collab.properties.name}
+                      </a>
+                      <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>
+                        {collab.songCount} collab{collab.songCount > 1 ? 's' : ''}
+                      </span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </div>
@@ -334,12 +333,12 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {/* Visual sub-graph */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>Sous-graphe Relationnel</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff', letterSpacing: '-0.01em' }}>Sous-graphe Relationnel</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
               Réseau de premier niveau autour de {name}. Double-cliquez sur un autre artiste pour explorer son réseau.
             </p>
-            <div className="graph-container" style={{ height: '420px' }}>
+            <div className="graph-container" style={{ height: '420px', border: '1px solid rgba(255,255,255,0.08)' }}>
               {loadingGraph && (
                 <div className="graph-loader">
                   <div className="spinner" />
@@ -355,23 +354,90 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
           </div>
 
           {/* Bottom Tabs: Tracks & Releases lists */}
-          <div className="card">
-            <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
+          <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{
+              display: 'inline-flex',
+              padding: '4px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '9999px',
+              marginBottom: '1.5rem'
+            }}>
               <button
                 className={`nav-link ${activeSubTab === 'tracks' ? 'active' : ''}`}
                 onClick={() => setActiveSubTab('tracks')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                style={{
+                  position: 'relative',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.85rem',
+                  padding: '0.5rem 1.1rem',
+                  color: activeSubTab === 'tracks' ? '#fff' : 'var(--text-secondary)',
+                  fontWeight: '600',
+                  transition: 'color 150ms var(--ease-out)',
+                  borderRadius: '9999px'
+                }}
               >
-                <Music size={16} />
                 Morceaux ({recordings.length})
+                {activeSubTab === 'tracks' && (
+                  <motion.span
+                    layoutId="active-artist-subtab"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'rgba(99, 102, 241, 0.12)',
+                      border: '1px solid rgba(99, 102, 241, 0.25)',
+                      borderRadius: '9999px',
+                      zIndex: -1
+                    }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
               </button>
               <button
                 className={`nav-link ${activeSubTab === 'releases' ? 'active' : ''}`}
                 onClick={() => setActiveSubTab('releases')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                style={{
+                  position: 'relative',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.85rem',
+                  padding: '0.5rem 1.1rem',
+                  color: activeSubTab === 'releases' ? '#fff' : 'var(--text-secondary)',
+                  fontWeight: '600',
+                  transition: 'color 150ms var(--ease-out)',
+                  borderRadius: '9999px'
+                }}
               >
-                <Disc size={16} />
                 Albums / Releases ({releases.length})
+                {activeSubTab === 'releases' && (
+                  <motion.span
+                    layoutId="active-artist-subtab"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'rgba(99, 102, 241, 0.12)',
+                      border: '1px solid rgba(99, 102, 241, 0.25)',
+                      borderRadius: '9999px',
+                      zIndex: -1
+                    }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
               </button>
             </div>
 
@@ -383,30 +449,35 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
                     Aucun morceau enregistré en base pour cet artiste.
                   </p>
                 ) : (
-                  recordings.map((rec) => (
-                    <div
-                      key={rec.properties.mbid}
-                      className="list-item"
-                      style={{ padding: '0.8rem 1rem', fontSize: '0.9rem' }}
-                    >
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                          <span style={{ fontWeight: '600', color: '#fff' }}>{rec.properties.title}</span>
-                          <span className={`badge ${rec.type === 'FEATURED_ON' ? 'badge-secondary' : 'badge-primary'}`} style={{ fontSize: '0.6rem' }}>
-                            {rec.type === 'FEATURED_ON' ? 'Featuring' : 'Interprète'}
-                          </span>
+                  <AnimatePresence>
+                    {recordings.map((rec, idx) => (
+                      <motion.div
+                        key={rec.properties.mbid}
+                        className="list-item"
+                        style={{ padding: '0.8rem 1rem', fontSize: '0.9rem' }}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.25), ease: [0.23, 1, 0.32, 1] }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <span style={{ fontWeight: '600', color: '#fff' }}>{rec.properties.title}</span>
+                            <span className={`badge ${rec.type === 'FEATURED_ON' ? 'badge-secondary' : 'badge-primary'}`} style={{ fontSize: '0.6rem' }}>
+                              {rec.type === 'FEATURED_ON' ? 'Featuring' : 'Interprète'}
+                            </span>
+                          </div>
+                          {rec.releases && rec.releases.length > 0 && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              Présent sur : {rec.releases.join(', ')}
+                            </p>
+                          )}
                         </div>
-                        {rec.releases && rec.releases.length > 0 && (
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            Présent sur : {rec.releases.join(', ')}
-                          </p>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        {formatLength(rec.properties.length)}
-                      </span>
-                    </div>
-                  ))
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                          {formatLength(rec.properties.length)}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 )}
               </div>
             )}
@@ -419,33 +490,38 @@ const ArtistDetail: React.FC<ArtistDetailProps> = ({ mbid, onBack, onInspectArti
                     Aucun album ou release enregistré en base pour cet artiste.
                   </p>
                 ) : (
-                  releases.map((rel) => (
-                    <div
-                      key={rel.properties.mbid}
-                      className="list-item"
-                      style={{ padding: '0.8rem 1rem', fontSize: '0.9rem' }}
-                    >
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                          <span style={{ fontWeight: '600', color: '#fff' }}>{rel.properties.title}</span>
-                          {rel.properties.releaseType && (
-                            <span className="badge" style={{ fontSize: '0.6rem' }}>
-                              {rel.properties.releaseType}
-                            </span>
+                  <AnimatePresence>
+                    {releases.map((rel, idx) => (
+                      <motion.div
+                        key={rel.properties.mbid}
+                        className="list-item"
+                        style={{ padding: '0.8rem 1rem', fontSize: '0.9rem' }}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.25), ease: [0.23, 1, 0.32, 1] }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <span style={{ fontWeight: '600', color: '#fff' }}>{rel.properties.title}</span>
+                            {rel.properties.releaseType && (
+                              <span className="badge" style={{ fontSize: '0.6rem' }}>
+                                {rel.properties.releaseType}
+                              </span>
+                            )}
+                          </div>
+                          {rel.labels && rel.labels.length > 0 && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              Label : {rel.labels.join(', ')}
+                            </p>
                           )}
                         </div>
-                        {rel.labels && rel.labels.length > 0 && (
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            Label : {rel.labels.join(', ')}
-                          </p>
-                        )}
-                      </div>
-                      <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        <div>{rel.properties.date ? rel.properties.date.split('-')[0] : 'N/A'}</div>
-                        {rel.properties.country && <div>{rel.properties.country}</div>}
-                      </div>
-                    </div>
-                  ))
+                        <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          <div>{rel.properties.date ? rel.properties.date.split('-')[0] : 'N/A'}</div>
+                          {rel.properties.country && <div>{rel.properties.country}</div>}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 )}
               </div>
             )}

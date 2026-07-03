@@ -1,5 +1,6 @@
 import React from 'react';
-import { GitBranch, Search, BarChart3, Home, Library } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { GitBranch } from '../components/AnimatedIcon';
 
 export type Tab = 'home' | 'search' | 'stats' | 'library'
   | { type: 'artist'; mbid: string }
@@ -19,72 +20,52 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     return false;
   };
 
+  const navItems = [
+    { id: 'home', label: 'Graphe Global' },
+    { id: 'library', label: 'Médiathèque' },
+    { id: 'search', label: 'Rechercher / Importer' },
+    { id: 'stats', label: 'Statistiques & Analyses' },
+  ] as const;
+
   return (
     <nav className="navbar">
       <a
-        href="#"
-        className="nav-logo"
-        onClick={(e) => {
-          e.preventDefault();
-          setActiveTab('home');
-        }}
+         href="#"
+         className="nav-logo"
+         onClick={(e) => {
+           e.preventDefault();
+           setActiveTab('home');
+         }}
       >
-        <GitBranch size={26} color="#6366f1" />
+        <GitBranch size={22} color="var(--accent-primary)" />
         MusicGraph
       </a>
       <ul className="nav-links">
-        <li>
-          <a
-            href="#"
-            className={`nav-link ${isTabActive('home') ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('home');
-            }}
-          >
-            <Home size={18} style={{ marginRight: '6px', verticalAlign: 'text-bottom' }} />
-            Graphe Global
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            className={`nav-link ${isTabActive('library') ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('library');
-            }}
-          >
-            <Library size={18} style={{ marginRight: '6px', verticalAlign: 'text-bottom' }} />
-            Médiathèque
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            className={`nav-link ${isTabActive('search') ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('search');
-            }}
-          >
-            <Search size={18} style={{ marginRight: '6px', verticalAlign: 'text-bottom' }} />
-            Rechercher / Importer
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            className={`nav-link ${isTabActive('stats') ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('stats');
-            }}
-          >
-            <BarChart3 size={18} style={{ marginRight: '6px', verticalAlign: 'text-bottom' }} />
-            Statistiques & Analyses
-          </a>
-        </li>
+        {navItems.map((item) => {
+          const active = isTabActive(item.id);
+          return (
+            <li key={item.id} style={{ position: 'relative' }}>
+              <a
+                href="#"
+                className={`nav-link ${active ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab(item.id);
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0.9rem' }}
+              >
+                <span>{item.label}</span>
+                {active && (
+                  <motion.span
+                    layoutId="active-nav-pill"
+                    className="active-nav-pill"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );

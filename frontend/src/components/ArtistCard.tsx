@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Users, MapPin, Calendar, HelpCircle, Eye } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export interface ArtistInfo {
   properties: {
@@ -29,25 +29,19 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onInspect }) => {
   const genres = artist.genres || [];
   const areaName = artist.area?.name || country;
 
-  const renderTypeIcon = () => {
-    switch (type?.toLowerCase()) {
-      case 'person':
-        return <User size={16} className="text-secondary" />;
-      case 'group':
-        return <Users size={16} className="text-secondary" />;
-      default:
-        return <HelpCircle size={16} className="text-secondary" />;
-    }
-  };
-
   return (
-    <div className="card fade-in">
+    <motion.div
+      className="card"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
         <div>
           <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff', marginBottom: '0.25rem' }}>{name}</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            {renderTypeIcon()}
-            <span>{type || 'Artiste'}</span>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {type || 'Artiste'}
           </p>
         </div>
         <span className="badge badge-primary">{artist.properties.source || 'MusicBrainz'}</span>
@@ -59,18 +53,18 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onInspect }) => {
         </p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
         {areaName && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <MapPin size={15} />
-            <span>{areaName}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Origine</span>
+            <span style={{ color: '#fff', fontWeight: '500' }}>{areaName}</span>
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Calendar size={15} />
-          <span>
-            {beginDate ? `Depuis ${beginDate}` : 'Début inconnu'}
-            {endDate ? ` jusqu'à ${endDate}` : ''}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Activité</span>
+          <span style={{ color: '#fff', fontWeight: '500' }}>
+            {beginDate ? beginDate : '?'}
+            {endDate ? ` – ${endDate}` : ''}
           </span>
         </div>
       </div>
@@ -86,10 +80,9 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ artist, onInspect }) => {
       )}
 
       <button className="btn btn-secondary" style={{ width: '100%', padding: '0.6rem' }} onClick={() => onInspect(mbid)}>
-        <Eye size={16} />
         Inspecter le profil
       </button>
-    </div>
+    </motion.div>
   );
 };
 

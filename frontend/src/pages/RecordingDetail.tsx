@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GraphView from '../components/GraphView';
-import { ArrowLeft, Calendar, Disc, Music, ShieldAlert, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, RefreshCw } from '../components/AnimatedIcon';
 
 interface ArtistCredit {
   mbid: string;
@@ -143,56 +144,55 @@ const RecordingDetail: React.FC<RecordingDetailProps> = ({
   return (
     <div className="fade-in">
       {/* Top Navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
         <button className="btn btn-secondary" onClick={onBack} style={{ padding: '0.5rem 1rem' }}>
           <ArrowLeft size={16} />
           Retour
         </button>
         <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }} />
-        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
           Exploration de graphe &gt; Morceau &gt; {title}
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '35% 65%', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '2.5rem', alignItems: 'start' }}>
         
         {/* Left Column: Metadata & Linked Albums */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* Metadata Card */}
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <Music size={28} color="var(--accent-color)" />
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fff', margin: 0 }}>{title}</h2>
+          <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{title}</h2>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.95rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginTop: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Calendar size={18} color="#10b981" />
-                <span>Date de publication : {firstReleaseDate || 'Inconnue'}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Date de publication</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{firstReleaseDate || 'Inconnue'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Music size={18} color="#a855f7" />
-                <span>Durée du morceau : {formatLength(length)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Durée</span>
+                <span style={{ color: '#fff', fontWeight: '500', fontFamily: 'var(--font-mono)' }}>{formatLength(length)}</span>
               </div>
               
               {/* Artists Section */}
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff', display: 'block', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#fff', display: 'block', marginBottom: '0.5rem' }}>
                   Crédits Artistes :
                 </span>
                 
                 {/* Main Performers */}
                 {mainPerformers.length > 0 && (
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Interprète(s) principal : </span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Interprète(s) principal : </span>
                     <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.25rem' }}>
                       {mainPerformers.map((a) => (
                         <span
                           key={a.mbid}
                           className="badge badge-primary hover-link"
                           onClick={() => onInspectArtist(a.mbid)}
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: 'pointer', fontSize: '0.7rem' }}
                         >
                           {a.name}
                         </span>
@@ -204,14 +204,14 @@ const RecordingDetail: React.FC<RecordingDetailProps> = ({
                 {/* Featuring Performers */}
                 {featuredPerformers.length > 0 && (
                   <div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Featuring / Invité(s) : </span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Featuring / Invité(s) : </span>
                     <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.25rem' }}>
                       {featuredPerformers.map((a) => (
                         <span
                           key={a.mbid}
                           className="badge badge-secondary hover-link"
                           onClick={() => onInspectArtist(a.mbid)}
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: 'pointer', fontSize: '0.7rem' }}
                         >
                           {a.name}
                         </span>
@@ -226,7 +226,7 @@ const RecordingDetail: React.FC<RecordingDetailProps> = ({
               className="btn btn-secondary"
               onClick={handleSync}
               disabled={syncing}
-              style={{ width: '100%', marginTop: '1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.6rem 0' }}
+              style={{ width: '100%', marginTop: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', padding: '0.6rem 0' }}
             >
               {syncing ? (
                 <>
@@ -242,21 +242,20 @@ const RecordingDetail: React.FC<RecordingDetailProps> = ({
             </button>
             
             {syncError && (
-              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.8rem' }}>
+              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#f87171', fontSize: '0.8rem' }}>
                 {syncError}
               </div>
             )}
             {syncSuccess && (
-              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', fontSize: '0.8rem' }}>
+              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#34d399', fontSize: '0.8rem' }}>
                 Morceau mis à jour avec succès !
               </div>
             )}
           </div>
 
           {/* Linked Releases Card */}
-          <div className="card" style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: '700', marginBottom: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Disc size={18} />
+          <div className="card" style={{ flex: 1, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', color: '#fff' }}>
               Apparaît sur les albums ({releases.length})
             </h3>
             
@@ -266,26 +265,33 @@ const RecordingDetail: React.FC<RecordingDetailProps> = ({
                   Ce morceau n'est relié à aucun album.
                 </p>
               ) : (
-                releases.map((release) => (
-                  <div
-                    key={release.mbid}
-                    className="list-item"
-                    style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}
-                  >
-                    <div>
-                      <span
-                        className="hover-link"
-                        onClick={() => onInspectRelease(release.mbid)}
-                        style={{ fontWeight: '600', color: '#fff', cursor: 'pointer' }}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <AnimatePresence>
+                    {releases.map((release, i) => (
+                      <motion.div
+                        key={release.mbid}
+                        className="list-item"
+                        style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.25), ease: [0.23, 1, 0.32, 1] }}
                       >
-                        {release.title}
-                      </span>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.1rem 0 0 0' }}>
-                        Type : {release.releaseType || 'Album'} {release.country ? ` | Région : ${release.country}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                ))
+                        <div>
+                          <span
+                            className="hover-link"
+                            onClick={() => onInspectRelease(release.mbid)}
+                            style={{ fontWeight: '600', color: '#fff', cursor: 'pointer' }}
+                          >
+                            {release.title}
+                          </span>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.1rem 0 0 0' }}>
+                            Type : {release.releaseType || 'Album'} {release.country ? ` | Région : ${release.country}` : ''}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
               )}
             </div>
           </div>
@@ -294,15 +300,15 @@ const RecordingDetail: React.FC<RecordingDetailProps> = ({
 
         {/* Right Column: Local Graph View */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
             <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>Réseau Graphique du Morceau</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff', letterSpacing: '-0.01em' }}>Réseau Graphique du Morceau</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 Visualisation des collaborations, des albums liés et de l'ensemble des relations directes.
               </p>
             </div>
             
-            <div className="graph-container" style={{ height: '550px' }}>
+            <div className="graph-container" style={{ height: '550px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
               {loadingGraph && (
                 <div className="graph-loader">
                   <div className="spinner" />

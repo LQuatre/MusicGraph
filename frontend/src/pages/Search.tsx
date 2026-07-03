@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search as SearchIcon, Download, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search as SearchIcon, Download, Check, AlertCircle, RefreshCw } from '../components/AnimatedIcon';
 
 interface SearchResult {
   id: string;
-  name?: string; // Artists have name
-  title?: string; // Releases/Recordings have title
+  name?: string;
+  title?: string;
   type?: string;
   country?: string;
   score?: number;
@@ -41,7 +42,6 @@ const Search: React.FC<SearchProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch already imported MBIDs based on active search type
   const fetchImportedMbids = async () => {
     try {
       const endpoint = searchType === 'artist' ? 'artists' : searchType === 'release' ? 'releases' : 'recordings';
@@ -119,7 +119,6 @@ const Search: React.FC<SearchProps> = ({
 
       setSuccessMessage(`${nameStr} a bien été importé dans la base Neo4j avec ses relations.`);
       
-      // Update imported list
       setImportedMbids((prev) => {
         const updated = new Set(prev);
         updated.add(mbid);
@@ -150,6 +149,17 @@ const Search: React.FC<SearchProps> = ({
     }
   };
 
+  const getPlaceholder = () => {
+    switch (searchType) {
+      case 'artist':
+        return "Rechercher par nom d'artiste (ex: Booba, Stromae, Daft Punk, SCH...)";
+      case 'release':
+        return "Rechercher par titre d'album (ex: Trône, Random Access Memories...)";
+      case 'recording':
+        return "Rechercher par titre de morceau (ex: DKR, Get Lucky...)";
+    }
+  };
+
   return (
     <div className="fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
       <h1>Rechercher et Importer</h1>
@@ -157,56 +167,80 @@ const Search: React.FC<SearchProps> = ({
         Recherchez des entités dans la base de données internationale MusicBrainz et importez-les dans Neo4j.
       </p>
 
-      {/* Tabs selectors for Search Type */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <button
-          type="button"
-          className={`btn ${searchType === 'artist' ? '' : 'btn-secondary'}`}
-          onClick={() => setSearchType('artist')}
-          style={{ fontSize: '0.85rem', padding: '0.5rem 1.25rem' }}
-        >
-          Artistes
-        </button>
-        <button
-          type="button"
-          className={`btn ${searchType === 'release' ? '' : 'btn-secondary'}`}
-          onClick={() => setSearchType('release')}
-          style={{ fontSize: '0.85rem', padding: '0.5rem 1.25rem' }}
-        >
-          Albums / Releases
-        </button>
-        <button
-          type="button"
-          className={`btn ${searchType === 'recording' ? '' : 'btn-secondary'}`}
-          onClick={() => setSearchType('recording')}
-          style={{ fontSize: '0.85rem', padding: '0.5rem 1.25rem' }}
-        >
-          Morceaux / Recordings
-        </button>
+      {/* Capsule Tab Switcher */}
+      <div style={{
+        display: 'inline-flex',
+        padding: '4px',
+        background: 'rgba(255, 255, 255, 0.03)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '9999px',
+        marginBottom: '2.5rem'
+      }}>
+        {(['artist', 'release', 'recording'] as const).map((type) => {
+          const active = searchType === type;
+          const label = type === 'artist' ? 'Artistes' : type === 'release' ? 'Albums' : 'Morceaux';
+          return (
+            <button
+              key={type}
+              type="button"
+              className={`nav-link ${active ? 'active' : ''}`}
+              onClick={() => setSearchType(type)}
+              style={{
+                position: 'relative',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.9rem',
+                padding: '0.6rem 1.25rem',
+                color: active ? '#fff' : 'var(--text-secondary)',
+                fontWeight: '600',
+                transition: 'color 150ms var(--ease-out)',
+                borderRadius: '9999px'
+              }}
+            >
+              {label}
+              {active && (
+                <motion.span
+                  layoutId="active-search-tab"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                    borderRadius: '9999px',
+                    zIndex: -1
+                  }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Search Input Box */}
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      {/* Cockpit Search Box */}
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
         <div className="input-group" style={{ flex: 1 }}>
-          <span style={{ display: 'flex', alignItems: 'center', paddingLeft: '1rem', color: 'var(--text-muted)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', paddingLeft: '1.25rem', color: 'var(--text-muted)' }}>
             <SearchIcon size={20} />
           </span>
           <input
             type="text"
             className="input-field"
-            placeholder={
-              searchType === 'artist'
-                ? "Rechercher par nom d'artiste (ex: Booba, Stromae, Daft Punk, SCH...)"
-                : searchType === 'release'
-                ? "Rechercher par titre d'album (ex: Trône, L'école des points vitaux, Random Access Memories...)"
-                : "Rechercher par titre de morceau (ex: DKR, Wati by Night, Get Lucky...)"
-            }
+            style={{ padding: '1rem 1.25rem' }}
+            placeholder={getPlaceholder()}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={loading || importingMbid !== null}
           />
         </div>
-        <button className="btn" type="submit" disabled={loading || importingMbid !== null || !query.trim()}>
+        <button className="btn" type="submit" style={{ padding: '0 2rem' }} disabled={loading || importingMbid !== null || !query.trim()}>
           {loading ? 'Recherche...' : 'Rechercher'}
         </button>
       </form>
@@ -216,15 +250,16 @@ const Search: React.FC<SearchProps> = ({
         <div
           className="fade-in"
           style={{
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
             color: '#f87171',
-            padding: '1rem',
-            borderRadius: '8px',
+            padding: '1rem 1.25rem',
+            borderRadius: '10px',
             marginBottom: '1.5rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem'
+            gap: '0.75rem',
+            fontSize: '0.9rem'
           }}
         >
           <AlertCircle size={20} />
@@ -236,15 +271,16 @@ const Search: React.FC<SearchProps> = ({
         <div
           className="fade-in"
           style={{
-            background: 'rgba(16, 185, 129, 0.15)',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
+            background: 'rgba(16, 185, 129, 0.1)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
             color: '#34d399',
-            padding: '1rem',
-            borderRadius: '8px',
+            padding: '1rem 1.25rem',
+            borderRadius: '10px',
             marginBottom: '1.5rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem'
+            gap: '0.75rem',
+            fontSize: '0.9rem'
           }}
         >
           <Check size={20} />
@@ -254,130 +290,136 @@ const Search: React.FC<SearchProps> = ({
 
       {/* Results Box */}
       {results.length > 0 && (
-        <div className="card">
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1rem', color: '#fff' }}>
+        <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.25rem', color: '#fff', letterSpacing: '-0.01em' }}>
             Résultats de recherche ({results.length})
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {results.map((item) => {
-              const isImported = importedMbids.has(item.id);
-              const isImportingThis = importingMbid === item.id;
-              
-              const title = item.name || item.title || 'Inconnu';
-              const artistCreditsText = item.artistCredit 
-                ? `par ${item.artistCredit.map(c => c.name).join(', ')}`
-                : '';
-              const subtitle = searchType === 'artist' 
-                ? item.disambiguation 
-                : artistCreditsText;
+            <AnimatePresence>
+              {results.map((item, idx) => {
+                const isImported = importedMbids.has(item.id);
+                const isImportingThis = importingMbid === item.id;
+                
+                const title = item.name || item.title || 'Inconnu';
+                const artistCreditsText = item.artistCredit 
+                  ? `par ${item.artistCredit.map(c => c.name).join(', ')}`
+                  : '';
+                const subtitle = searchType === 'artist' 
+                  ? item.disambiguation 
+                  : artistCreditsText;
 
-              let typeBadge = item.type;
-              let countryBadge = item.country;
-              
-              let detailsText = `MBID: ${item.id}`;
-              if (searchType === 'artist') {
-                if (item['life-span']?.begin) {
-                  detailsText += ` | Activité : depuis ${item['life-span'].begin.split('-')[0]}`;
+                let typeBadge = item.type;
+                let countryBadge = item.country;
+                
+                let detailsText = `MBID: ${item.id}`;
+                if (searchType === 'artist') {
+                  if (item['life-span']?.begin) {
+                    detailsText += ` | Activité : depuis ${item['life-span'].begin.split('-')[0]}`;
+                  }
+                } else if (searchType === 'release') {
+                  if (item.date) {
+                    detailsText += ` | Date : ${item.date.split('-')[0]}`;
+                  }
+                  if (item.status) {
+                    detailsText += ` | Statut : ${item.status}`;
+                  }
+                } else if (searchType === 'recording') {
+                  if (item.date) {
+                    detailsText += ` | Date : ${item.date.split('-')[0]}`;
+                  }
+                  if (item.length) {
+                    detailsText += ` | Durée : ${formatLength(item.length)}`;
+                  }
                 }
-              } else if (searchType === 'release') {
-                if (item.date) {
-                  detailsText += ` | Date : ${item.date.split('-')[0]}`;
-                }
-                if (item.status) {
-                  detailsText += ` | Statut : ${item.status}`;
-                }
-              } else if (searchType === 'recording') {
-                if (item.date) {
-                  detailsText += ` | Date : ${item.date.split('-')[0]}`;
-                }
-                if (item.length) {
-                  detailsText += ` | Durée : ${formatLength(item.length)}`;
-                }
-              }
 
-              return (
-                <div
-                  key={item.id}
-                  className="list-item"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1.25rem'
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                      <span className="list-item-title" style={{ fontSize: '1.05rem', color: '#fff' }}>
-                        {title}
-                      </span>
-                      {typeBadge && <span className="badge">{typeBadge}</span>}
-                      {countryBadge && <span className="badge badge-primary">{countryBadge}</span>}
-                    </div>
-                    {subtitle && (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                        {subtitle}
-                      </p>
-                    )}
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {detailsText}
-                    </p>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    {isImported && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => handleInspect(item.id)}
-                        style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
-                      >
-                        Inspecter
-                      </button>
-                    )}
-
-                    <button
-                      className={`btn ${isImported ? 'btn-secondary' : ''}`}
-                      disabled={isImportingThis || importingMbid !== null}
-                      onClick={() => handleImport(item.id)}
-                      style={{
-                        fontSize: '0.8rem',
-                        padding: '0.5rem 1.25rem',
-                        minWidth: '150px',
-                        display: 'flex',
-                        gap: '0.5rem',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {isImportingThis ? (
-                        <>
-                          <RefreshCw size={14} className="spinner" />
-                          Importation...
-                        </>
-                      ) : isImported ? (
-                        <>
-                          <RefreshCw size={14} />
-                          Mettre à jour
-                        </>
-                      ) : (
-                        <>
-                          <Download size={14} />
-                          Importer Neo4j
-                        </>
+                return (
+                  <motion.div
+                    key={item.id}
+                    className="list-item"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto',
+                      alignItems: 'center',
+                      gap: '1rem',
+                      padding: '1.25rem'
+                    }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25, delay: Math.min(idx * 0.03, 0.2), ease: [0.23, 1, 0.32, 1] }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                        <span className="list-item-title" style={{ fontSize: '1.05rem', color: '#fff' }}>
+                          {title}
+                        </span>
+                        {typeBadge && <span className="badge">{typeBadge}</span>}
+                        {countryBadge && <span className="badge badge-primary">{countryBadge}</span>}
+                      </div>
+                      {subtitle && (
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                          {subtitle}
+                        </p>
                       )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {detailsText}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {isImported && (
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleInspect(item.id)}
+                          style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
+                        >
+                          Inspecter
+                        </button>
+                      )}
+
+                      <button
+                        className={`btn ${isImported ? 'btn-secondary' : ''}`}
+                        disabled={isImportingThis || importingMbid !== null}
+                        onClick={() => handleImport(item.id)}
+                        style={{
+                          fontSize: '0.8rem',
+                          padding: '0.5rem 1.25rem',
+                          minWidth: '150px',
+                          display: 'flex',
+                          gap: '0.5rem',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        {isImportingThis ? (
+                          <>
+                            <RefreshCw size={14} className="spinner" />
+                            Importation...
+                          </>
+                        ) : isImported ? (
+                          <>
+                            <RefreshCw size={14} />
+                            Mettre à jour
+                          </>
+                        ) : (
+                          <>
+                            <Download size={14} />
+                            Importer Neo4j
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         </div>
       )}
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-secondary)' }}>
-          <div className="spinner" style={{ margin: '0 auto 1rem auto' }} />
+        <div style={{ textAlign: 'center', padding: '3.5rem 0', color: 'var(--text-secondary)' }}>
+          <div className="spinner" style={{ margin: '0 auto 1.25rem auto' }} />
           <span>Interrogation de la base de données MusicBrainz...</span>
         </div>
       )}

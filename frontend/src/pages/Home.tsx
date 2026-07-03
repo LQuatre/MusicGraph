@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GraphView from '../components/GraphView';
 import ArtistCard from '../components/ArtistCard';
 import type { ArtistInfo } from '../components/ArtistCard';
-import { Network, Users, Disc, Layers, Search } from 'lucide-react';
+import { Search } from '../components/AnimatedIcon';
 
 interface HomeProps {
   onInspectArtist: (mbid: string) => void;
@@ -114,59 +114,68 @@ const Home: React.FC<HomeProps> = ({ onInspectArtist, apiUrl }) => {
 
   return (
     <div className="fade-in">
-      {/* 1. Summary Stats Bar */}
+      {/* 1. Bento Stats Overview */}
       {stats && (
-        <div className="grid-4" style={{ marginBottom: '2rem' }}>
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
-            <div style={{ background: 'rgba(99, 102, 241, 0.15)', padding: '0.75rem', borderRadius: '8px' }}>
-              <Users size={24} color="#6366f1" />
-            </div>
-            <div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Artistes Importés</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800' }}>{stats.artists}</h3>
-            </div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(12, 1fr)',
+          gap: '1.25rem',
+          marginBottom: '2.5rem'
+        }}>
+          {/* Card 1: Artistes */}
+          <div className="card" style={{
+            gridColumn: 'span 3',
+            padding: '1.5rem',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h3 style={{ fontSize: '2rem', fontWeight: '600', color: '#fff', letterSpacing: '-0.03em', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>{stats.artists}</h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Artistes Importés</p>
           </div>
 
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
-            <div style={{ background: 'rgba(168, 85, 247, 0.15)', padding: '0.75rem', borderRadius: '8px' }}>
-              <Disc size={24} color="#a855f7" />
-            </div>
-            <div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Enregistrements</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800' }}>{stats.recordings}</h3>
-            </div>
+          {/* Card 2: Morceaux */}
+          <div className="card" style={{
+            gridColumn: 'span 3',
+            padding: '1.5rem',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h3 style={{ fontSize: '2rem', fontWeight: '600', color: '#fff', letterSpacing: '-0.03em', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>{stats.recordings}</h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Enregistrements</p>
           </div>
 
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
-            <div style={{ background: 'rgba(16, 185, 129, 0.15)', padding: '0.75rem', borderRadius: '8px' }}>
-              <Layers size={24} color="#10b981" />
-            </div>
-            <div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Albums / Releases</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800' }}>{stats.releases}</h3>
-            </div>
+          {/* Card 3: Albums */}
+          <div className="card" style={{
+            gridColumn: 'span 3',
+            padding: '1.5rem',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h3 style={{ fontSize: '2rem', fontWeight: '600', color: '#fff', letterSpacing: '-0.03em', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>{stats.releases}</h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Albums / Releases</p>
           </div>
 
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem' }}>
-            <div style={{ background: 'rgba(245, 158, 11, 0.15)', padding: '0.75rem', borderRadius: '8px' }}>
-              <Network size={24} color="#f59e0b" />
-            </div>
-            <div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Collaborations</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800' }}>{stats.collaborations}</h3>
-            </div>
+          {/* Card 4: Collabs */}
+          <div className="card" style={{
+            gridColumn: 'span 3',
+            padding: '1.5rem',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h3 style={{ fontSize: '2rem', fontWeight: '600', color: '#fff', letterSpacing: '-0.03em', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>{stats.collaborations}</h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Collaborations</p>
           </div>
         </div>
       )}
 
       {/* 2. Main Work Area (Graph + Artists sidebar) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '70% 30%', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: '2.5rem', alignItems: 'start' }}>
         
         {/* Left Column: Graph View */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Explorateur de Relations</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em' }}>Explorateur de Relations</h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 {graphType === 'collab'
                   ? 'Visualisation exclusive du réseau de collaborations directes'
@@ -191,7 +200,7 @@ const Home: React.FC<HomeProps> = ({ onInspectArtist, apiUrl }) => {
             </div>
           </div>
 
-          <div className="graph-container">
+          <div className="graph-container" style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px' }}>
             {loadingGraph && (
               <div className="graph-loader">
                 <div className="spinner" />
@@ -215,17 +224,26 @@ const Home: React.FC<HomeProps> = ({ onInspectArtist, apiUrl }) => {
         </div>
 
         {/* Right Column: Sidebar Artist List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '680px' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Artistes en Base</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxHeight: '720px' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '700', letterSpacing: '-0.02em' }}>Artistes en Base</h2>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(99, 102, 241, 0.08)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)', marginBottom: '0.5rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '0.5rem', 
+            background: 'rgba(99, 102, 241, 0.04)', 
+            padding: '1.25rem', 
+            borderRadius: '12px', 
+            border: '1px solid rgba(99, 102, 241, 0.15)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)'
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#fff' }}>Étendre la scène</span>
               <button 
                 className="btn" 
                 onClick={handleCrawl} 
                 disabled={crawling} 
-                style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem', background: 'var(--accent-color)', cursor: 'pointer' }}
+                style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
               >
                 {crawling ? 'Import...' : 'Crawl +5 FR'}
               </button>
@@ -257,11 +275,12 @@ const Home: React.FC<HomeProps> = ({ onInspectArtist, apiUrl }) => {
               display: 'flex',
               flexDirection: 'column',
               gap: '1rem',
-              paddingRight: '0.5rem',
+              paddingRight: '0.25rem',
               border: '1px solid var(--border-color)',
-              borderRadius: '8px',
+              borderRadius: '12px',
               padding: '1rem',
-              background: 'rgba(17, 24, 39, 0.4)'
+              background: 'rgba(17, 24, 39, 0.2)',
+              maxHeight: '420px'
             }}
           >
             {loadingArtists ? (
@@ -270,7 +289,7 @@ const Home: React.FC<HomeProps> = ({ onInspectArtist, apiUrl }) => {
               </div>
             ) : filteredArtists.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                Aucun artiste trouvé. Allez sur l'onglet de recherche pour en importer !
+                Aucun artiste trouvé.
               </div>
             ) : (
               filteredArtists.map((artist) => (

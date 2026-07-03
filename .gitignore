@@ -24,3 +24,8 @@ dist/
 .DS_Store
 Thumbs.db
 *.log
+
+# Agent-specific files
+.agents/
+skills-lock.json
+

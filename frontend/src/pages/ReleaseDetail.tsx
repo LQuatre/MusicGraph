@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GraphView from '../components/GraphView';
-import { ArrowLeft, Calendar, MapPin, Tag, Disc, Music, ShieldAlert, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, RefreshCw } from '../components/AnimatedIcon';
 
 interface TrackInfo {
   mbid: string;
@@ -134,46 +135,45 @@ const ReleaseDetail: React.FC<ReleaseDetailProps> = ({
   return (
     <div className="fade-in">
       {/* Top Navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
         <button className="btn btn-secondary" onClick={onBack} style={{ padding: '0.5rem 1rem' }}>
           <ArrowLeft size={16} />
           Retour
         </button>
         <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }} />
-        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '500' }}>
           Exploration de graphe &gt; Album &gt; {title}
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '35% 65%', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '2.5rem', alignItems: 'start' }}>
         
         {/* Left Column: Album Info & Tracks List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* Metadata Card */}
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <Disc size={28} color="var(--accent-color)" />
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fff', margin: 0 }}>{title}</h2>
+          <div className="card" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>{title}</h2>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.95rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginTop: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Calendar size={18} color="#10b981" />
-                <span>Date de sortie : {date || 'Inconnue'}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Date de sortie</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{date || 'Inconnue'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <MapPin size={18} color="#f59e0b" />
-                <span>Zone géographique : {country || 'Inconnue'}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Zone géographique</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{country || 'Inconnue'}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Tag size={18} color="#06b6d4" />
-                <span>Type : {releaseType || 'Album'}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Type</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{releaseType || 'Album'}</span>
               </div>
               {labels.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Tag size={18} color="#ec4899" />
-                  <span>Labels : {labels.join(', ')}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Labels</span>
+                  <span style={{ color: '#fff', fontWeight: '500' }}>{labels.join(', ')}</span>
                 </div>
               )}
             </div>
@@ -182,7 +182,7 @@ const ReleaseDetail: React.FC<ReleaseDetailProps> = ({
               className="btn btn-secondary"
               onClick={handleSync}
               disabled={syncing}
-              style={{ width: '100%', marginTop: '1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.6rem 0' }}
+              style={{ width: '100%', marginTop: '1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', padding: '0.6rem 0' }}
             >
               {syncing ? (
                 <>
@@ -198,21 +198,20 @@ const ReleaseDetail: React.FC<ReleaseDetailProps> = ({
             </button>
             
             {syncError && (
-              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.8rem' }}>
+              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#f87171', fontSize: '0.8rem' }}>
                 {syncError}
               </div>
             )}
             {syncSuccess && (
-              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', fontSize: '0.8rem' }}>
+              <div className="fade-in" style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', color: '#34d399', fontSize: '0.8rem' }}>
                 Album mis à jour avec succès !
               </div>
             )}
           </div>
 
           {/* Tracks Card */}
-          <div className="card" style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: '700', marginBottom: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Music size={18} />
+          <div className="card" style={{ flex: 1, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', color: '#fff' }}>
               Liste des pistes ({tracks.length})
             </h3>
             
@@ -222,32 +221,39 @@ const ReleaseDetail: React.FC<ReleaseDetailProps> = ({
                   Aucune piste enregistrée pour cet album.
                 </p>
               ) : (
-                tracks.map((track, i) => (
-                  <div
-                    key={track.mbid}
-                    className="list-item"
-                    style={{ padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}
-                  >
-                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>{i + 1}</span>
-                    <div style={{ minWidth: 0 }}>
-                      <span
-                        className="hover-link"
-                        onClick={() => onInspectRecording(track.mbid)}
-                        style={{ fontWeight: '600', color: '#fff', cursor: 'pointer', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <AnimatePresence>
+                    {tracks.map((track, i) => (
+                      <motion.div
+                        key={track.mbid}
+                        className="list-item"
+                        style={{ padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.25), ease: [0.23, 1, 0.32, 1] }}
                       >
-                        {track.title}
-                      </span>
-                      {track.artists && track.artists.length > 0 && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          par {track.artists.join(', ')}
+                        <span style={{ color: 'var(--text-muted)', fontWeight: '600', width: '18px' }}>{i + 1}</span>
+                        <div style={{ minWidth: 0 }}>
+                          <span
+                            className="hover-link"
+                            onClick={() => onInspectRecording(track.mbid)}
+                            style={{ fontWeight: '600', color: '#fff', cursor: 'pointer', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                          >
+                            {track.title}
+                          </span>
+                          {track.artists && track.artists.length > 0 && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                              par {track.artists.join(', ')}
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {formatLength(track.length)}
                         </span>
-                      )}
-                    </div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {formatLength(track.length)}
-                    </span>
-                  </div>
-                ))
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
               )}
             </div>
           </div>
@@ -256,15 +262,15 @@ const ReleaseDetail: React.FC<ReleaseDetailProps> = ({
 
         {/* Right Column: Local Graph View */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
             <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>Réseau Graphique de l'Album</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff', letterSpacing: '-0.01em' }}>Réseau Graphique de l'Album</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Visualisation des morceaux de l'album, leurs artistes crédités, sa maison de disques et sa région de publication.
+                Visualisation des morceaux de l'album, de leurs artistes crédités, de sa maison de disques et de sa région de publication.
               </p>
             </div>
             
-            <div className="graph-container" style={{ height: '550px' }}>
+            <div className="graph-container" style={{ height: '550px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
               {loadingGraph && (
                 <div className="graph-loader">
                   <div className="spinner" />
