@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search as SearchIcon, Download, Check, AlertCircle, RefreshCw } from '../components/AnimatedIcon';
+import { Search as SearchIcon, Download, Check, AlertCircle, RefreshCw, History as HistoryIcon, Trash2, X } from '../components/AnimatedIcon';
+
+interface SearchHistoryItem {
+  id: string;
+  query: string;
+  type: 'artist' | 'release' | 'recording';
+  timestamp: number;
+}
 
 interface SearchResult {
   id: string;
@@ -41,6 +48,59 @@ const Search: React.FC<SearchProps> = ({
   const [importingMbid, setImportingMbid] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [history, setHistory] = useState<SearchHistoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('musicgraph_search_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const saveToHistory = (searchQuery: string, type: 'artist' | 'release' | 'recording') => {
+    setHistory((prev) => {
+      const filtered = prev.filter(
+        (item) => !(item.query.toLowerCase() === searchQuery.toLowerCase() && item.type === type)
+      );
+      const updated: SearchHistoryItem[] = [
+        {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          query: searchQuery,
+          type,
+          timestamp: Date.now()
+        },
+        ...filtered
+      ].slice(0, 8);
+      try {
+        localStorage.setItem('musicgraph_search_history', JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to save search history:', err);
+      }
+      return updated;
+    });
+  };
+
+  const removeFromHistory = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setHistory((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      try {
+        localStorage.setItem('musicgraph_search_history', JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to update search history:', err);
+      }
+      return updated;
+    });
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    try {
+      localStorage.removeItem('musicgraph_search_history');
+    } catch (err) {
+      console.error('Failed to clear search history:', err);
+    }
+  };
 
   const fetchImportedMbids = async () => {
     try {
@@ -58,22 +118,21 @@ const Search: React.FC<SearchProps> = ({
 
   useEffect(() => {
     fetchImportedMbids();
-    setResults([]);
-    setErrorMessage(null);
-    setSuccessMessage(null);
   }, [searchType]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const executeSearch = async (searchQuery: string, targetType: 'artist' | 'release' | 'recording') => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
     setResults([]);
 
+    saveToHistory(trimmed, targetType);
+
     try {
-      const endpoint = searchType === 'artist' ? 'artists' : searchType === 'release' ? 'releases' : 'recordings';
-      const res = await fetch(`${apiUrl}/${endpoint}/search?query=${encodeURIComponent(query)}`);
+      const endpoint = targetType === 'artist' ? 'artists' : targetType === 'release' ? 'releases' : 'recordings';
+      const res = await fetch(`${apiUrl}/${endpoint}/search?query=${encodeURIComponent(trimmed)}`);
       if (!res.ok) {
         throw new Error(`Erreur lors de la recherche sur MusicBrainz`);
       }
@@ -84,6 +143,17 @@ const Search: React.FC<SearchProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch(query, searchType);
+  };
+
+  const handleHistoryClick = (item: SearchHistoryItem) => {
+    setQuery(item.query);
+    setSearchType(item.type);
+    executeSearch(item.query, item.type);
   };
 
   const handleImport = async (mbid: string) => {
@@ -184,7 +254,14 @@ const Search: React.FC<SearchProps> = ({
               key={type}
               type="button"
               className={`nav-link ${active ? 'active' : ''}`}
-              onClick={() => setSearchType(type)}
+              onClick={() => {
+                if (searchType !== type) {
+                  setSearchType(type);
+                  setResults([]);
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }
+              }}
               style={{
                 position: 'relative',
                 background: 'none',
@@ -225,7 +302,7 @@ const Search: React.FC<SearchProps> = ({
       </div>
 
       {/* Cockpit Search Box */}
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', marginBottom: history.length > 0 ? '1.25rem' : '2.5rem' }}>
         <div className="input-group" style={{ flex: 1 }}>
           <span style={{ display: 'flex', alignItems: 'center', paddingLeft: '1.25rem', color: 'var(--text-muted)' }}>
             <SearchIcon size={20} />
@@ -244,6 +321,135 @@ const Search: React.FC<SearchProps> = ({
           {loading ? 'Recherche...' : 'Rechercher'}
         </button>
       </form>
+
+      {/* Historique des recherches */}
+      {history.length > 0 && (
+        <div
+          className="fade-in"
+          style={{
+            marginBottom: '2rem',
+            padding: '0.85rem 1.25rem',
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.07)',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600 }}>
+              <HistoryIcon size={15} style={{ color: 'var(--accent-primary)' }} />
+              <span>Recherches récentes</span>
+            </div>
+            <button
+              type="button"
+              onClick={clearHistory}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '0.78rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                transition: 'color 150ms ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+              title="Effacer tout l'historique"
+            >
+              <Trash2 size={13} />
+              <span>Effacer</span>
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {history.map((item) => {
+              const typeColor =
+                item.type === 'artist'
+                  ? { bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa', border: 'rgba(59, 130, 246, 0.3)', label: 'Artiste' }
+                  : item.type === 'release'
+                  ? { bg: 'rgba(168, 85, 247, 0.15)', text: '#c084fc', border: 'rgba(168, 85, 247, 0.3)', label: 'Album' }
+                  : { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)', label: 'Morceau' };
+
+              return (
+                <motion.div
+                  key={item.id}
+                  whileHover={{ scale: 1.02, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleHistoryClick(item)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(255, 255, 255, 0.09)',
+                    borderRadius: '8px',
+                    padding: '0.35rem 0.65rem 0.35rem 0.75rem',
+                    color: '#fff',
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: 'border-color 150ms ease, background 150ms ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.09)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: typeColor.bg,
+                      color: typeColor.text,
+                      border: `1px solid ${typeColor.border}`,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    {typeColor.label}
+                  </span>
+                  <span style={{ fontWeight: 500 }}>{item.query}</span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => removeFromHistory(e, item.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--text-muted)',
+                      padding: '2px',
+                      borderRadius: '50%',
+                      marginLeft: '0.2rem',
+                      transition: 'color 150ms ease, background 150ms ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#fff';
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-muted)';
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                    title="Supprimer de l'historique"
+                  >
+                    <X size={12} />
+                  </span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Global Alerts */}
       {errorMessage && (

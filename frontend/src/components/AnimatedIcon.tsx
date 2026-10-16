@@ -427,3 +427,6 @@ export const Eye = createAnimatedIcon(Lucide.Eye, { scale: 1.15 });
 export const GitBranch = createAnimatedIcon(Lucide.GitBranch, { scale: 1.1, rotate: 15 });
 export const Network = createAnimatedIcon(Lucide.Network, { scale: 1.1, rotate: 10 });
 export const Layers = createAnimatedIcon(Lucide.Layers, { scale: 1.1, y: -2 });
+export const History = createAnimatedIcon(Lucide.History, { scale: 1.1, rotate: -15 });
+export const Trash2 = createAnimatedIcon(Lucide.Trash2, { scale: 1.1 });
+export const X = createAnimatedIcon(Lucide.X, { scale: 1.1 });
