@@ -10,7 +10,7 @@ import Library from './pages/Library';
 import ReleaseDetail from './pages/ReleaseDetail';
 import RecordingDetail from './pages/RecordingDetail';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
